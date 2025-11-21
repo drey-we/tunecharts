@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, follow">
+    
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/resultado.css">
+    <link rel="stylesheet" href="css/cards.css">
+
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ESP4KVJCPE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ESP4KVJCPE');
+    </script>
+    
+    <title>My Charts - TuneCharts</title>
+    <meta name="description" content="Check out my music listening report on TuneCharts! See top artists and tracks.">
+    <meta name="theme-color" content="#0f0f0f">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tunecharts.space/">
+    <meta property="og:title" content="My Music Charts on TuneCharts">
+    <meta property="og:description" content="See my top artists and tracks from Last.fm!">
+    <meta property="og:image" content="https://tunecharts.space/assets/og-image.jpg">
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+</head>
+
+<body class="pagina-resultado">
+
+    <header class="topo-fixo">
+        <a href="index.html" class="btn-voltar">← Back</a>
+        <div class="period-toggle">
+            <div class="toggle-glider"></div>
+            <button class="toggle-option" data-period="7day">Week</button>
+            <button class="toggle-option active" data-period="1month">Month</button>
+            <button class="toggle-option" data-period="12month">Annual</button>
+        </div>
+    </header>
+
+    <section class="topo-com-banner">
+        <div class="banner-fundo"></div>
+        <div class="perfil-container">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=" " class="foto-perfil skeleton" id="userFoto">
+            <h1 id="userName" class="skeleton">&nbsp;</h1>
+            <div class="scrobbles-info">
+                <span id="userScrobbles" class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;</span> scrobbles
+            </div>
+            <p class="monthly-label">Showing monthly results</p>
+        </div>
+    </section>
+
+    <main class="conteudo-charts">
+        <div class="charts-grid">
+            <section class="chart-card" id="cardArtists">
+                <h2>Top Artists</h2>
+                <div class="lista-top">
+                    <div class="chart-item skeleton top-1"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div>
+                </div>
+            </section>
+            <section class="chart-card" id="cardTracks">
+                <h2>Top Songs</h2>
+                <div class="lista-top">
+                    <div class="chart-item skeleton top-1"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div>
+                </div>
+            </section>
+            <section class="chart-card" id="cardAlbums">
+                <h2>Top Albums</h2>
+                <div class="lista-top">
+                    <div class="chart-item skeleton top-1"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div><div class="chart-item skeleton"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="storyCardContainer" class="hidden-card-container">
+        <div id="storyCard">
+            <div class="story-header">
+                <div class="story-header-content">
+                    <img id="storyUserImg" src="" alt="" class="foto-perfil">
+                    <h1 id="storyTitle"></h1>
+                    <p id="storySubtitle" class="story-subtitle"></p>
+                </div>
+            </div>
+            <div class="story-body">
+                <div class="story-column">
+                    <h3 id="storyCol1Title">Top Artists</h3>
+                    <div id="storyCol1List" class="story-list"></div>
+                </div>
+                <div class="story-column">
+                    <h3 id="storyCol2Title">Top Songs</h3>
+                    <div id="storyCol2List" class="story-list"></div>
+                </div>
+            </div>
+            <div class="story-footer">
+                <div class="story-brand">Create yours at tunecharts.space</div>
+                <div class="story-stat">
+                    <span id="storyScrobblesLabel" class="stat-label"></span>
+                    <span id="storyScrobblesValue" class="stat-value">0</span>
+                    <span id="storyDisclaimer" class="stat-disclaimer"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="squareCardV2Container" class="hidden-card-container">
+        <div id="squareCardV2">
+            <div class="sq-v2-header">
+                <img id="sqUserImg" src="" alt="User Avatar" class="sq-v2-avatar">
+                <div class="sq-v2-user-info">
+                    <span id="sqUsername" class="sq-v2-username"></span>
+                    <span id="sqReportTitle" class="sq-v2-report-title"></span>
+                </div>
+            </div>
+            <div class="sq-v2-body">
+                <div class="sq-v2-column">
+                    <h3 id="sqCol1Title">Top Artists</h3>
+                    <ul id="sqCol1List" class="sq-v2-list"></ul>
+                </div>
+                <div class="sq-v2-column">
+                    <h3 id="sqCol2Title">Top Tracks</h3>
+                    <ul id="sqCol2List" class="sq-v2-list"></ul>
+                </div>
+            </div>
+            <div class="sq-v2-footer">
+                <div class="sq-v2-brand">Create yours at tunecharts.space</div>
+                <div class="sq-v2-stat">
+                    <span id="sqScrobblesLabel" class="sq-v2-stat-label"></span>
+                    <span id="sqScrobblesValue" class="sq-v2-stat-value">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="btnGerarRelatorio">
+        Generate Report
+    </button>
+    
+    <div id="formatPickerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="formatPickerModal">&times;</span>
+            <h2>Choose a format</h2>
+            <div class="format-picker">
+                <button class="format-option" data-format="story">
+                    <div class="format-preview format-story"></div>
+                    <span>Story (9:16)</span>
+                </button>
+                <button class="format-option" data-format="square">
+                    <div class="format-preview format-square"></div>
+                    <span>Square (1:1)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+<div id="columnPickerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" data-modal="columnPickerModal">&times;</span>
+        <h2>What do you want to show?</h2>
+        <p class="modal-info">Choose 1 or 2 charts to display.</p>
+        
+        <div class="chart-selection-options">
+            
+            <div class="toggle-switch-row">
+                <label class="toggle-label" for="col-artists">Top Artists</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="col-artists" class="chart-col-option" data-list="artists" data-title="Top Artists" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-switch-row">
+                <label class="toggle-label" for="col-tracks">Top Tracks</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="col-tracks" class="chart-col-option" data-list="tracks" data-title="Top Tracks" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-switch-row">
+                <label class="toggle-label" for="col-albums">Top Albums</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="col-albums" class="chart-col-option" data-list="albums" data-title="Top Albums">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+        </div>
+        
+        <button id="confirmColumnsBtn" class="btn-proceed">
+            Choose Color
+        </button>
+    </div>
+</div>
+
+    <div id="colorPickerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="colorPickerModal">&times;</span>
+            <h2>Choose your accent color!</h2>
+            <div class="color-palette">
+                <button class="color-option" data-color="#F44336" style="background-color: #F44336;" title="Red"></button>
+                <button class="color-option" data-color="#FF5733" style="background-color: #FF5733;" title="Orange"></button>
+                <button class="color-option" data-color="#FFD700" style="background-color: #FFD700;" title="Yellow"></button>
+                <button class="color-option" data-color="#28a745" style="background-color: #28a745;" title="Green"></button>
+                <button class="color-option" data-color="#39CCCC" style="background-color: #39CCCC;" title="Aqua"></button>
+                <button class="color-option" data-color="#337AFF" style="background-color: #337AFF;" title="Blue"></button>
+                <button class="color-option" data-color="#bb86fc" style="background-color: #bb86fc;" title="Purple"></button>
+                <button class="color-option" data-color="#FF1493" style="background-color: #FF1493;" title="Pink"></button>
+            </div>
+        </div>
+    </div>
+
+
+   <footer>
+        
+<div class="footer-info">
+    <span class="info-line-1">© <span id="currentYear"></span> TuneCharts.</span>
+    <span class="info-line-2">All rights reserved.</span>
+    <span class="separator">|</span>
+    <span class="info-line-3">Created with ❤️ by <a href="https://last.fm/user/DreyWe" target="_blank">DreyWe</a></span>
+</div>
+
+    <div class="footer-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <span class="dot">•</span>
+        <a href="terms.html">Terms of Use</a>
+        <span class="dot">•</span>
+        <a href="httpsB://forms.gle/h2HfEoJhHfYRTTSXA" target="_blank" rel="noopener noreferrer">Feedback & Support</a>
+        <span class="dot">•</span>
+        <a href="changelog.html" class="versao">v1.4.0</a>
+    </div>
+</footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="resultado.js"></script>
+</body>
+</html>
