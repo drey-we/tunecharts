@@ -38,7 +38,7 @@ To run this project, you will need a Last.fm API Key.
 
 1.  **Clone the repository**
     ```bash
-    git clone [https://github.com/seu-usuario/tunecharts.git](https://github.com/seu-usuario/tunecharts.git)
+    git clone [https://github.com/seu-usuario/tunecharts.git](https://github.com/drey-we/tunecharts.git)
     ```
 
 2.  **Setup the Backend Proxy**
@@ -60,5 +60,5 @@ This project is licensed under the **GNU General Public License v3.0** - see the
 
 ---
 <p align="center">
-  Created with ❤️ by <a href="https://github.com/seu-usuario">DreyWe</a>
+  Created with ❤️ by <a href="https://github.com/drey-we">DreyWe</a>
 </p>
