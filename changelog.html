@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="canonical" href="https://tunecharts.space/changelog.html" />
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/policies.css">
+    <link rel="stylesheet" href="css/feedback.css">
+
+    
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ESP4KVJCPE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ESP4KVJCPE');
+</script>
+
+    <title>Changelog - TuneCharts</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    </head>
+    
+<body>
+
+    <header class="topo-fixo">
+        <a href="index.html" class="btn-voltar">← Home</a>
+    </header>
+
+    <main>
+        <div class="policy-container">
+            <h1>Changelog</h1>
+            <span class="policy-meta">Current version 2.0.0</span>
+            
+<h2>v2.0.0 - The Visual Update</h2>
+<p>This update focuses on polishing the visual experience, unifying the card designs, and fixing rendering artifacts.</p>
+
+<ul>
+  <li>
+    <strong>Story Card (9:16) Redesign:</strong>
+    The Story format has been completely overhauled to match the Square (1:1) identity.
+    It now features a <strong>horizontal header layout</strong> and a smart dynamic background that blends your Top #1 Artist's image with a smooth fade-to-black gradient.
+  </li>
+
+  <li>
+    <strong>Crystal Clear Exports:</strong>
+    We increased the rendering engine scale. The generated images are now <strong>2x sharper</strong>, eliminating pixelated edges and visual artifacts ("dots") in the text.
+  </li>
+
+  <li>
+    <strong>Smart Data Formatting:</strong>
+    Fixed a logic bug where the "Top Artists" chart would display a trailing hyphen (e.g., "ABBA -"). The tool now intelligently detects the chart type to format names correctly.
+  </li>
+
+  <li>
+    <strong>Visual Polish:</strong>
+    <br>• <strong>Perfect Alignment:</strong> Usernames and subtitles are now vertically centered with the avatar.
+    <br>• <strong>Seamless Gradients:</strong> Fixed the accent color blur to flow continuously from the header to the body without visual cuts.
+    <br>• <strong>Typography:</strong> Action buttons now correctly inherit the site's font (Poppins).
+  </li>
+</ul>
+
+<div style="margin-top: 25px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+    <p style="margin: 0; font-size: 0.95rem; color: #ccc;">
+        <strong>Open Source:</strong><br>
+        TuneCharts is open for contributions! Star the project, report issues, or check the code on GitHub:
+    </p>
+    <a href="https://github.com/drey-we/tunecharts" target="_blank" style="display: inline-block; margin-top: 10px; color: #bb86fc; text-decoration: none; font-weight: 700; border-bottom: 2px solid #bb86fc;">
+        github.com/drey-we/tunecharts
+    </a>
+</div>
+            
+ <h2>v1.4.0</h2>
+<p>I've added a new options hub and improvements to the tool's structure.</p>
+
+<ul>
+  <li>
+    <strong>New options hub:</strong>
+    Thanks to your suggestion, we now have a chart options hub for report generation.
+    You can choose between Top Tracks, Top Artists, and Top Albums to display on the shareable card.<br>
+    <em>(Minimum: 1 chart — Maximum: 2 charts)</em>
+  </li>
+
+  <li>
+    <strong>Tool restructuring:</strong>
+    We redesigned part of the website’s internal structure due to the increase in features.
+    This does not change anything for the end user, but it keeps things more organized behind the scenes.
+  </li>
+</ul>
+
+<p>Suggestion notes:</p>
+<ul>
+  <li>
+    <strong>Hide profile:</strong>
+    The goal of the tool is to create shareable cards for Last.fm users, and the profile is part of that identity.
+    Adding a hide-profile option isn’t feasible right now due to layout rules and card structure.
+    For now, the profile will remain, but you can crop the image after generating your card.
+  </li>
+
+  <li>
+    <strong>Add a minute counter:</strong>
+    I'm working on a secondary tool where you’ll be able to generate reports based on total minutes/hours listened instead of scrobbles.
+    More news soon.
+  </li>
+</ul>
+
+<p>
+  You can also leave an idea or suggestion on our
+  <a href="#" onclick="openFeedback(event)">Send Feedback</a>
+  popup.
+</p>
+
+            
+            <h2>v1.3.0</h2>
+            <p>New format option added</p>
+            <ul>
+<li>
+  <strong>New format added:</strong>
+  The 1x1 square format is now available for generating reports. It works with every time period option and is ideal for feeds or any platform that supports square posts.
+</li>
+<li>
+  <strong>UI and performance improvements:</strong>
+  General interface polish and faster overall loading.
+</li>
+            </ul>
+            
+            <h2>v1.2.0</h2>
+            <p>Addition of new filter and addition of new colors</p>
+            <ul>
+<li>
+  <strong>Added week filter:</strong>
+  You can now filter your scrobbles from the last 7 days. Stories created with this filter are labeled as “My Week.”
+</li>
+<li>
+  <strong>New colors in the palette:</strong>
+  I’ve added more options to the story color palette. You now have eight accent colors to choose from when generating your reports.
+</li>
+
+            </ul>
+            
+            <h2>v1.1.0</h2>
+            <p>Addition of new annual filter</p>
+            <ul>
+        <li>
+          <strong>Added annual filter:</strong>
+              You can now see your stats for a full year. When you generate a story with the annual filter selected, you’ll get an annual card showing how many scrobbles and songs you listened to in the last 365 days (1 year).   It’s perfect to use at the end of each year as your yearly recap.
+        </li>
+
+            </ul>
+            
+            <h2>v1.0.0</h2>
+            <p>Final and stable version</p>
+            <ul>
+                <li>Final improvement in user interface</li>
+            </ul>
+            
+                       <h2>Beta v0.1.2</h2>
+            <p>Addition of policies, terms, and support</p>
+            <ul>
+                <li>Addition of privacy policy</li>
+                <li>Addition of terms of use</li>
+                <li>Indexing the site in Google searches</li>
+                <li>Addition of Google analytics to improve the usability of the tool</li>
+                <li>Correction of other minor errorss</li>
+            </ul>
+            
+           <h2>Beta v0.1.1</h2>
+            <p>Corrections</p>
+            <ul>
+                <li>Animation fixes</li>
+                <li>Added slow loading for better performance</li>
+                <li>Responsiveness adjustments</li>
+                <li>Improved loading</li>
+                <li>Caching results</li>
+                <li>Change in the Last.fm API</li>
+            </ul>
+            
+            <h2>Beta v0.1.0</h2>
+            <p>Initial public release</p>
+            <ul>
+                <li>Added support for monthly filter</li>
+                <li>Added support for card generation for stories</li>
+            </ul>
+ 
+        </div>
+    </main>
+
+   <footer>
+        
+<div class="footer-info">
+    <span class="info-line-1">© <span id="currentYear"></span> TuneCharts.</span>
+    <span class="info-line-2">All rights reserved.</span>
+    <span class="separator">|</span>
+    <span class="info-line-3">Created with ❤️ by <a href="https://last.fm/user/DreyWe" target="_blank">DreyWe</a></span>
+</div>
+
+    <div class="footer-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <span class="dot">•</span>
+        <a href="terms.html">Terms of Use</a>
+        <span class="dot">•</span>
+        <a href="#" onclick="openFeedback(event)">Send Feedback</a>
+     <span class="dot">•</span>
+        <a href="https://github.com/drey-we/tunecharts" target="_blank" aria-label="View Source on GitHub" title="View Source on GitHub" style="display: inline-flex; align-items: center;">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="transition: stroke 0.2s;">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+            </svg>
+        </a>
+             <span class="dot">•</span>
+        <a href="changelog.html" class="versao">v2.0.0</a>
+    </div>
+</footer>
+
+<script src="feedback.js"></script>
+
+</body>
+</html>

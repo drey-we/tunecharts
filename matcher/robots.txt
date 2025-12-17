@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://matcher.tunecharts.space/sitemap.xml
