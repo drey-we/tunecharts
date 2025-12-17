@@ -32,19 +32,19 @@ tunecharts/
 
 Generates visual cards summarizing top albums, artists, and tracks over customizable periods.
 
-    Focus: Aesthetics and shareability (9:16 format).
+- Focus: Aesthetics and shareability (9:16 format).
 
-    Tech: Canvas generation for instant download.
+- Tech: Canvas generation for instant download.
 
 ### 2. Counter (/counter)
 
 Calculates the total time (hours/minutes) a user has spent listening to music.
 
-    Methodology: To ensure mobile performance and avoid API rate limiting, this tool analyzes the user's Top 1,000 Tracks.
+- Methodology: To ensure mobile performance and avoid API rate limiting, this tool analyzes the user's Top 1,000 Tracks.
 
-    Disclaimer: While this covers 99% of listening time for most users, tracks ranked below 1,000 are not included in the total sum. This decision prioritizes speed and stability over "forensic" precision found in slower, aggressive scrapers.
+- Disclaimer: While this covers 99% of listening time for most users, tracks ranked below 1,000 are not included in the total sum. This decision prioritizes speed and stability over "forensic" precision found in slower, aggressive scrapers.
 
-    UI: Includes an informational modal explaining this calculation logic to the user.
+- UI: Includes an informational modal explaining this calculation logic to the user.
 
 ### 3. Matcher (/matcher)
 
@@ -79,4 +79,4 @@ git push origin main
 
 📄 License & Credits
 
-Developed by [drey-we(https://github.com/drey-we). TuneCharts is not affiliated with Last.fm or Spotify. Data is provided courtesy of their respective public APIs.
+Developed by [drey-we](https://github.com/drey-we). TuneCharts is not affiliated with Last.fm or Spotify. Data is provided courtesy of their respective public APIs.
