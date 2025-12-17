@@ -1,5 +1,3 @@
-Markdown
-
 # 🎵 TuneCharts
 
 A suite of visual tools for music lovers, integrated with Last.fm and Spotify APIs. This project generates aesthetic reports ("receipts"), listening statistics, and music compatibility analysis, optimized for social sharing (Instagram Stories).
