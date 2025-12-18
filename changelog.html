@@ -20,7 +20,7 @@
 
     <title>Changelog - TuneCharts</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="hhttps://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
     </head>
     
 <body>
@@ -29,163 +29,17 @@
         <a href="index.html" class="btn-voltar">← Home</a>
     </header>
 
-    <main>
-        <div class="policy-container">
-            <h1>Changelog</h1>
-            <span class="policy-meta">Current version 2.0.0</span>
-            
-<h2>v2.0.0 - The Visual Update</h2>
-<p>This update focuses on polishing the visual experience, unifying the card designs, and fixing rendering artifacts.</p>
-
-<ul>
-  <li>
-    <strong>Story Card (9:16) Redesign:</strong>
-    The Story format has been completely overhauled to match the Square (1:1) identity.
-    It now features a <strong>horizontal header layout</strong> and a smart dynamic background that blends your Top #1 Artist's image with a smooth fade-to-black gradient.
-  </li>
-
-  <li>
-    <strong>Crystal Clear Exports:</strong>
-    We increased the rendering engine scale. The generated images are now <strong>2x sharper</strong>, eliminating pixelated edges and visual artifacts ("dots") in the text.
-  </li>
-
-  <li>
-    <strong>Smart Data Formatting:</strong>
-    Fixed a logic bug where the "Top Artists" chart would display a trailing hyphen (e.g., "ABBA -"). The tool now intelligently detects the chart type to format names correctly.
-  </li>
-
-  <li>
-    <strong>Visual Polish:</strong>
-    <br>• <strong>Perfect Alignment:</strong> Usernames and subtitles are now vertically centered with the avatar.
-    <br>• <strong>Seamless Gradients:</strong> Fixed the accent color blur to flow continuously from the header to the body without visual cuts.
-    <br>• <strong>Typography:</strong> Action buttons now correctly inherit the site's font (Poppins).
-  </li>
-</ul>
-
-<div style="margin-top: 25px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-    <p style="margin: 0; font-size: 0.95rem; color: #ccc;">
-        <strong>Open Source:</strong><br>
-        TuneCharts is open for contributions! Star the project, report issues, or check the code on GitHub:
-    </p>
-    <a href="https://github.com/drey-we/tunecharts" target="_blank" style="display: inline-block; margin-top: 10px; color: #bb86fc; text-decoration: none; font-weight: 700; border-bottom: 2px solid #bb86fc;">
-        github.com/drey-we/tunecharts
-    </a>
-</div>
-            
- <h2>v1.4.0</h2>
-<p>I've added a new options hub and improvements to the tool's structure.</p>
-
-<ul>
-  <li>
-    <strong>New options hub:</strong>
-    Thanks to your suggestion, we now have a chart options hub for report generation.
-    You can choose between Top Tracks, Top Artists, and Top Albums to display on the shareable card.<br>
-    <em>(Minimum: 1 chart — Maximum: 2 charts)</em>
-  </li>
-
-  <li>
-    <strong>Tool restructuring:</strong>
-    We redesigned part of the website’s internal structure due to the increase in features.
-    This does not change anything for the end user, but it keeps things more organized behind the scenes.
-  </li>
-</ul>
-
-<p>Suggestion notes:</p>
-<ul>
-  <li>
-    <strong>Hide profile:</strong>
-    The goal of the tool is to create shareable cards for Last.fm users, and the profile is part of that identity.
-    Adding a hide-profile option isn’t feasible right now due to layout rules and card structure.
-    For now, the profile will remain, but you can crop the image after generating your card.
-  </li>
-
-  <li>
-    <strong>Add a minute counter:</strong>
-    I'm working on a secondary tool where you’ll be able to generate reports based on total minutes/hours listened instead of scrobbles.
-    More news soon.
-  </li>
-</ul>
-
-<p>
-  You can also leave an idea or suggestion on our
-  <a href="#" onclick="openFeedback(event)">Send Feedback</a>
-  popup.
-</p>
-
-            
-            <h2>v1.3.0</h2>
-            <p>New format option added</p>
-            <ul>
-<li>
-  <strong>New format added:</strong>
-  The 1x1 square format is now available for generating reports. It works with every time period option and is ideal for feeds or any platform that supports square posts.
-</li>
-<li>
-  <strong>UI and performance improvements:</strong>
-  General interface polish and faster overall loading.
-</li>
-            </ul>
-            
-            <h2>v1.2.0</h2>
-            <p>Addition of new filter and addition of new colors</p>
-            <ul>
-<li>
-  <strong>Added week filter:</strong>
-  You can now filter your scrobbles from the last 7 days. Stories created with this filter are labeled as “My Week.”
-</li>
-<li>
-  <strong>New colors in the palette:</strong>
-  I’ve added more options to the story color palette. You now have eight accent colors to choose from when generating your reports.
-</li>
-
-            </ul>
-            
-            <h2>v1.1.0</h2>
-            <p>Addition of new annual filter</p>
-            <ul>
-        <li>
-          <strong>Added annual filter:</strong>
-              You can now see your stats for a full year. When you generate a story with the annual filter selected, you’ll get an annual card showing how many scrobbles and songs you listened to in the last 365 days (1 year).   It’s perfect to use at the end of each year as your yearly recap.
-        </li>
-
-            </ul>
-            
-            <h2>v1.0.0</h2>
-            <p>Final and stable version</p>
-            <ul>
-                <li>Final improvement in user interface</li>
-            </ul>
-            
-                       <h2>Beta v0.1.2</h2>
-            <p>Addition of policies, terms, and support</p>
-            <ul>
-                <li>Addition of privacy policy</li>
-                <li>Addition of terms of use</li>
-                <li>Indexing the site in Google searches</li>
-                <li>Addition of Google analytics to improve the usability of the tool</li>
-                <li>Correction of other minor errorss</li>
-            </ul>
-            
-           <h2>Beta v0.1.1</h2>
-            <p>Corrections</p>
-            <ul>
-                <li>Animation fixes</li>
-                <li>Added slow loading for better performance</li>
-                <li>Responsiveness adjustments</li>
-                <li>Improved loading</li>
-                <li>Caching results</li>
-                <li>Change in the Last.fm API</li>
-            </ul>
-            
-            <h2>Beta v0.1.0</h2>
-            <p>Initial public release</p>
-            <ul>
-                <li>Added support for monthly filter</li>
-                <li>Added support for card generation for stories</li>
-            </ul>
- 
+<main>
+    <div class="policy-container">
+        <h1>Changelog</h1>
+        
+        <span class="policy-meta" id="version-display">Loading version...</span>
+        
+        <div id="changelog-content">
+            <p>Loading updates...</p>
         </div>
-    </main>
+    </div>
+</main>
 
    <footer>
         
@@ -214,6 +68,51 @@
 </footer>
 
 <script src="feedback.js"></script>
+<script src="version.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+    const changelogUrl = 'https://raw.githubusercontent.com/drey-we/tunecharts/main/CHANGELOG.md';
+
+    async function loadChangelog() {
+        try {
+            const response = await fetch(changelogUrl);
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                     document.getElementById('changelog-content').innerHTML = '<p>No changelog found yet. Make a commit starting with "feat:" or "fix:" to generate one.</p>';
+                     return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const text = await response.text();
+            
+            const contentDiv = document.getElementById('changelog-content');
+            contentDiv.innerHTML = marked.parse(text);
+
+            const versionMatch = text.match(/## \[?v?([\d\.]+)\]?/);
+            
+            if (versionMatch && versionMatch[1]) {
+                const currentVersion = `v${versionMatch[1]}`;
+                
+                const headerDisplay = document.getElementById('version-display');
+                if (headerDisplay) headerDisplay.textContent = `Current version ${currentVersion}`;
+
+                const footerLink = document.querySelector('footer .versao');
+                if (footerLink) footerLink.textContent = currentVersion;
+            }
+
+        } catch (error) {
+            console.error('Failed to load changelog:', error);
+            document.getElementById('changelog-content').innerHTML = 
+                '<p>Unable to load update history.</p>';
+        }
+    }
+
+    // Run function
+    loadChangelog();
+</script>
 
 </body>
 </html>
