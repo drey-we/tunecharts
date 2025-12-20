@@ -132,6 +132,16 @@
     z-index: 2;
     transition: color 0.3s ease-out;
 }
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+#btnGerarRelatorio {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px; 
+}
 .toggle-option:hover {
     color: #fff;
 }
@@ -405,7 +415,7 @@ h1.skeleton {
 .toggle-switch-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: left;
     width: 100%;
     padding: 12px 0;
     border-bottom: 1px solid rgb(255 255 255 / 0.05);
@@ -497,6 +507,22 @@ input:checked + .slider::before {
 }
 .close-button:hover {
     color: #fff;
+}
+.close-button svg, 
+.feedback-close svg {
+    pointer-events: none; 
+}
+.close-button, 
+.feedback-close {
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+.close-button:hover, 
+.feedback-close:hover {
+    opacity: 0.7;
 }
 .color-palette {
     display: flex;

@@ -40,6 +40,21 @@ body:not(.pagina-resultado) main {
     padding-top: 150px;
     padding-bottom: 100px;
 }
+.cover-placeholder {
+    position: relative;
+    overflow: hidden;
+    background-color: #333;
+}
+.cover-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+.cover-placeholder img.loaded {
+    opacity: 1;
+}
 .home-header {
     position: absolute;
     top: 20px;
@@ -98,6 +113,23 @@ body:not(.pagina-resultado) main {
     position: relative;
     z-index: 1;
     animation: slideOutReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards 0.5s;
+}
+#bannerBackground {
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0; 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+#btnIr, .btn-voltar, #btnGerarRelatorio {
+    display: inline-flex !important; 
+    align-items: center;       
+    justify-content: center;     
+    gap: 10px;                   
+    vertical-align: middle;
+}
+svg {
+    flex-shrink: 0;
 }
 @keyframes slideOutReveal {
     to {
