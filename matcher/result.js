@@ -15,10 +15,14 @@ const iconLoading = `<svg class="spinner" width="20" height="20" viewBox="0 0 24
 
 // Cache e Estado
 let spotifyTokenCache = null;
-let globalTopCommonImage = ""; // URL da imagem para o banner e background dos cards
+let globalTopCommonImage = ""; 
 let selectedAccentColor = "#bb86fc";
-let selectedFormat = "story"; // 'story' ou 'square'
+let selectedFormat = "story"; 
 let isGenerating = false;
+
+// Variáveis para guardar os nomes reais e usar no card Square
+let globalDisplayName1 = "";
+let globalDisplayName2 = "";
 
 /* =========================================
    INICIALIZAÇÃO (MAIN FLOW)
@@ -26,32 +30,23 @@ let isGenerating = false;
 async function init() {
     console.log(`Starting Match: ${user1} vs ${user2}`);
     
-    // Configura eventos de UI (Modais, Botões)
     setupUIEvents();
 
     try {
-        // 1. Busca dados em paralelo (Perfil 1, Perfil 2, Top Artistas 1, Top Artistas 2)
         const [u1Profile, u2Profile, u1Artists, u2Artists] = await Promise.all([
             fetchLastFm("user.getinfo", user1),
             fetchLastFm("user.getinfo", user2),
-            fetchLastFm("user.gettopartists", user1, "1month", 50), // Pegamos 50 para ter uma boa base de comparação
+            fetchLastFm("user.gettopartists", user1, "1month", 50), 
             fetchLastFm("user.gettopartists", user2, "1month", 50)
         ]);
 
-        // 2. Processa Dados de Perfil
         renderProfiles(u1Profile, u2Profile);
         renderScrobbles(u1Profile, u2Profile);
 
-        // 3. Lógica de Match (Algoritmo de Comparação)
         const matchResult = calculateCompatibility(u1Artists, u2Artists);
 
-        // 4. Renderiza as Listas na Tela e nos Cards Ocultos
         renderLists(matchResult, u1Artists, u2Artists);
-
-        // 5. Atualiza Score e Textos
         updateScoreUI(matchResult.score);
-
-        // 6. Busca Imagens (Spotify) - Assíncrono para não travar a UI
         loadImages(matchResult.commonArtists, u1Artists, u2Artists);
 
     } catch (error) {
@@ -65,7 +60,6 @@ async function init() {
    LÓGICA DE DADOS (FETCH & MATCH)
    ========================================= */
 
-// Wrapper para API do Last.fm
 async function fetchLastFm(method, user, period = "", limit = "") {
     let url = `/api/?method=${method}&user=${user}`;
     if (period) url += `&period=${period}`;
@@ -76,23 +70,19 @@ async function fetchLastFm(method, user, period = "", limit = "") {
     
     if (data.error) throw new Error(data.message);
     
-    // Normaliza retorno para facilitar
     if (method === "user.gettopartists") {
         return data.topartists.artist || [];
     }
-    return data; // Para user.getinfo
+    return data; 
 }
 
-// Algoritmo de Compatibilidade
 function calculateCompatibility(list1, list2) {
-    // Normaliza para array (caso a API retorne objeto único)
     const arr1 = Array.isArray(list1) ? list1 : [list1];
     const arr2 = Array.isArray(list2) ? list2 : [list2];
 
     let commonArtists = [];
     let score = 0;
 
-    // Mapa para busca rápida O(1)
     const map2 = new Map();
     arr2.forEach((artist, index) => map2.set(artist.name.toLowerCase(), index));
 
@@ -100,12 +90,8 @@ function calculateCompatibility(list1, list2) {
         const name = artist.name.toLowerCase();
         if (map2.has(name)) {
             const index2 = map2.get(name);
-            
-            // Peso baseado na posição (quanto mais alto no top, mais pontos)
-            // Peso máximo = 50 (se ambos forem #1)
             const weight1 = Math.max(0, 50 - index1);
             const weight2 = Math.max(0, 50 - index2);
-            
             const matchQuality = (weight1 + weight2) / 2; 
             
             commonArtists.push({
@@ -117,18 +103,13 @@ function calculateCompatibility(list1, list2) {
         }
     });
 
-    // Ordena comuns por relevância
     commonArtists.sort((a, b) => b.quality - a.quality);
 
-    // Cálculo do Score (0 a 100%)
-    // Fórmula baseada na quantidade de comuns e suas posições
-    // Se tiverem pelo menos 10 artistas em comum no top 50, já garante uma % alta
-    const baseScore = (commonArtists.length / 50) * 100; // Quantidade
-    const qualityScore = commonArtists.reduce((acc, curr) => acc + curr.quality, 0) / 10; // Qualidade
+    const baseScore = (commonArtists.length / 50) * 100; 
+    const qualityScore = commonArtists.reduce((acc, curr) => acc + curr.quality, 0) / 10; 
     
     let finalScore = Math.min(100, Math.round(baseScore * 0.4 + qualityScore * 0.6));
     
-    // Boost se o top 1 for igual
     if (commonArtists.length > 0 && commonArtists[0].rank1 === 1 && commonArtists[0].rank2 === 1) {
         finalScore = Math.min(100, finalScore + 10);
     }
@@ -145,46 +126,43 @@ function renderProfiles(p1, p2) {
     const u1 = p1.user;
     const u2 = p2.user;
 
-    // Helper para imagem
+    // Salva nomes globais para usar no Card Quadrado depois
+    globalDisplayName1 = u1.realname || u1.name;
+    globalDisplayName2 = u2.realname || u2.name;
+
     const getImg = (u) => (u.image.find(i => i.size === "extralarge") || u.image[0])["#text"] || "";
 
     // DOM Visível
-    document.getElementById("userName1").textContent = u1.realname || u1.name;
+    document.getElementById("userName1").textContent = globalDisplayName1;
     document.getElementById("userFoto1").src = getImg(u1);
-    document.getElementById("userName2").textContent = u2.realname || u2.name;
+    document.getElementById("userName2").textContent = globalDisplayName2;
     document.getElementById("userFoto2").src = getImg(u2);
     
-    // Remove skeleton
     document.querySelectorAll(".skeleton").forEach(el => el.classList.remove("skeleton"));
 
-    // DOM Cards Ocultos (Story & Square)
+    // DOM Cards Ocultos
     const hiddenIds = ["story", "sq"];
     hiddenIds.forEach(prefix => {
-        document.getElementById(`${prefix}UserName1`).textContent = u1.name;
+        document.getElementById(`${prefix}UserName1`).textContent = globalDisplayName1;
         document.getElementById(`${prefix}UserImg1`).src = getImg(u1);
-        document.getElementById(`${prefix}UserName2`).textContent = u2.name;
+        document.getElementById(`${prefix}UserName2`).textContent = globalDisplayName2;
         document.getElementById(`${prefix}UserImg2`).src = getImg(u2);
         
-        // Configura CORS para o html2canvas não quebrar
         document.getElementById(`${prefix}UserImg1`).crossOrigin = "anonymous";
         document.getElementById(`${prefix}UserImg2`).crossOrigin = "anonymous";
     });
 }
 
 function renderScrobbles(p1, p2) {
-    // Apenas para mostrar no topo da página
     const s1 = parseInt(p1.user.playcount).toLocaleString("pt-BR");
     const s2 = parseInt(p2.user.playcount).toLocaleString("pt-BR");
-    
     document.getElementById("userScrobbles1").textContent = s1;
     document.getElementById("userScrobbles2").textContent = s2;
 }
 
 function updateScoreUI(score) {
-    // Score na tela principal (Topo)
     const scoreEl = document.getElementById("compatibilityScore");
-    // Score abaixo do VS (Novo)
-    const vsScoreEl = document.getElementById("vsScoreTag");
+    const vsScoreEl = document.getElementById("vsScoreTag"); // NOVO ALVO DO SCORE
     
     let current = 0;
     const interval = setInterval(() => {
@@ -194,10 +172,9 @@ function updateScoreUI(score) {
             clearInterval(interval);
         }
         if(scoreEl) scoreEl.textContent = current;
-        if(vsScoreEl) vsScoreEl.textContent = current + "%"; // Mostra no VS
+        if(vsScoreEl) vsScoreEl.textContent = current + "%"; 
     }, 20);
 
-    // Texto descritivo
     let text = "Stranger Vibes";
     if (score > 30) text = "Musical Acquaintances";
     if (score > 50) text = "Vibe Buddies";
@@ -210,24 +187,19 @@ function updateScoreUI(score) {
     const storyText = document.getElementById("storySharedText");
     if(storyText) storyText.textContent = text;
 
-    // Score nos Cards Ocultos
     document.getElementById("storyScoreValue").textContent = score + "%";
     document.getElementById("sqScoreValue").textContent = score + "%";
 }
 
 function renderLists(matchData, list1, list2) {
-    // Top 5 User 1
-    fillColumn("cardUser1", list1, false); // Tela
-    fillHiddenColumn("storyList1", list1, "story"); // Card Story
-    fillHiddenColumn("sqCol1List", list1, "square"); // Card Square
+    fillColumn("cardUser1", list1, false); 
+    fillHiddenColumn("storyList1", list1, "story"); 
+    fillHiddenColumn("sqCol1List", list1, "square"); 
 
-    // Top 5 User 2
     fillColumn("cardUser2", list2, false);
     fillHiddenColumn("storyList2", list2, "story");
     fillHiddenColumn("sqCol2List", list2, "square");
 
-    // Top 5 Shared (Common)
-    // Se não tiver comuns suficientes, completamos com vazio ou mensagem
     if (matchData.commonArtists.length === 0) {
         document.querySelector("#cardShared .lista-top").innerHTML = "<div style='padding:20px; text-align:center; color:#666;'>No common artists found in Top 50.</div>";
     } else {
@@ -235,20 +207,17 @@ function renderLists(matchData, list1, list2) {
     }
 }
 
-// Preenche colunas visíveis (HTML da página)
 function fillColumn(cardId, items, isShared) {
     const container = document.querySelector(`#${cardId} .lista-top`);
     if (!container) return;
     
     let html = "";
-    // Mostramos Top 5 na tela
     const limit = 5;
     const data = items.slice(0, limit);
 
     data.forEach((item, i) => {
         const isTop1 = i === 0;
         const name = item.name;
-        // Se for lista Shared, item tem rank1 e rank2, senão usa i+1
         const rankDisplay = isShared ? "" : `#${i + 1}`; 
         
         if (isTop1) {
@@ -265,17 +234,14 @@ function fillColumn(cardId, items, isShared) {
             html += `<div class="chart-item">${rankDisplay} ${name}</div>`;
         }
     });
-
     container.innerHTML = html;
 }
 
-// Preenche colunas dos Cards Ocultos (HTML para imagem)
 function fillHiddenColumn(elementId, items, format) {
     const container = document.getElementById(elementId);
     if (!container) return;
 
     let html = "";
-    // Story: Top 5, Square: Top 5
     const limit = 5; 
     const data = items.slice(0, limit);
 
@@ -284,14 +250,12 @@ function fillHiddenColumn(elementId, items, format) {
         const name = item.name;
 
         if (format === "story") {
-            // Estilo Story
             html += `
             <div class="story-item ${i === 0 ? 'top-1' : ''}">
                 <span class="story-rank">#${rank}</span>
                 <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${name}</span>
             </div>`;
         } else {
-            // Estilo Square (ul > li)
             html += `
             <li class="${i === 0 ? 'top-1' : ''}">
                 <span class="sq-v2-rank">#${rank}</span>
@@ -308,30 +272,24 @@ function fillHiddenColumn(elementId, items, format) {
    ========================================= */
 
 async function loadImages(commonArtists, list1, list2) {
-    // Prioridade para Banner: 1º Comum -> Se não, 1º do User 1
     const bannerArtist = commonArtists.length > 0 ? commonArtists[0].name : list1[0].name;
 
-    // 1. Busca imagem do Banner (e salva globalmente)
     const bannerUrl = await buscarImagemSpotify(bannerArtist, "artist");
     if (bannerUrl) {
         globalTopCommonImage = bannerUrl;
         
-        // Atualiza Banner da Página
         const bannerEl = document.getElementById("bannerBackground");
         bannerEl.style.backgroundImage = `url('${bannerUrl}')`;
         bannerEl.style.opacity = 1;
         
-        // Atualiza Top 1 Shared na tela (se existir)
         updateImageInDom("img-cardShared-0", bannerUrl);
     }
 
-    // 2. Busca Imagem Top 1 User 1
     if (list1.length > 0) {
         const url1 = await buscarImagemSpotify(list1[0].name, "artist");
         if (url1) updateImageInDom("img-cardUser1-0", url1);
     }
 
-    // 3. Busca Imagem Top 1 User 2
     if (list2.length > 0) {
         const url2 = await buscarImagemSpotify(list2[0].name, "artist");
         if (url2) updateImageInDom("img-cardUser2-0", url2);
@@ -392,10 +350,8 @@ function setupUIEvents() {
     const colorModal = document.getElementById("colorPickerModal");
     const genBtn = document.getElementById("btnGerarRelatorio");
 
-    // Abrir modal de formato
     genBtn.addEventListener("click", () => formatModal.style.display = "flex");
 
-    // Fechar modais
     document.querySelectorAll(".close-button").forEach(btn => {
         btn.addEventListener("click", function() {
             const modalId = this.getAttribute("data-modal");
@@ -403,18 +359,14 @@ function setupUIEvents() {
         });
     });
 
-    // CORREÇÃO 2: Seleção de Formato JÁ ABRE o Color Picker
     document.querySelectorAll(".format-option").forEach(btn => {
         btn.onclick = (e) => {
             selectedFormat = e.currentTarget.getAttribute("data-format");
-            
-            // Fecha formato e abre cor imediatamente
             formatModal.style.display = "none";
             colorModal.style.display = "flex";
         };
     });
 
-    // Seleção de Cor e Geração Final
     document.querySelectorAll(".color-option").forEach(btn => {
         btn.onclick = (e) => {
             if (isGenerating) return;
@@ -424,7 +376,6 @@ function setupUIEvents() {
         };
     });
     
-    // Fechar ao clicar fora
     window.onclick = (e) => {
         if (e.target == formatModal) formatModal.style.display = "none";
         if (e.target == colorModal) colorModal.style.display = "none";
@@ -437,21 +388,29 @@ async function generateFinalImage() {
     btn.innerHTML = `${iconLoading} Generating...`;
     btn.disabled = true;
 
-    // Seleciona o card correto baseando no formato
     let targetId = selectedFormat === "story" ? "storyCard" : "squareCardV2";
     let targetEl = document.getElementById(targetId);
-    let width = selectedFormat === "story" ? 1080 : 1080;
+    let width = 1080;
     let height = selectedFormat === "story" ? 1920 : 1080;
 
-    try {
-        // Aplica cores dinâmicas antes de tirar o print
-        applyDynamicColors(targetEl, selectedAccentColor, selectedFormat);
+    // --- MUDANÇA IMPORTANTE PARA O SQUARE CARD ---
+    if (selectedFormat === "square") {
+        // Coloca o NOME DO USUÁRIO no título da coluna
+        document.getElementById("sqColTitle1").textContent = globalDisplayName1;
+        document.getElementById("sqColTitle2").textContent = globalDisplayName2;
+    } else {
+        // No story mantemos "User 1" ou podemos por nome também se quiser, 
+        // mas a lógica padrão do story era "User 1" (title fixo). 
+        // Se quiser mudar no story tb, adicione aqui.
+        // Por padrão no HTML está "User 1" e "User 2".
+    }
 
-        // Pequeno delay para renderizar CSS
+    try {
+        applyDynamicColors(targetEl, selectedAccentColor, selectedFormat);
         await new Promise(r => setTimeout(r, 500));
 
         const canvas = await html2canvas(targetEl, {
-            scale: 1, // Já está em tamanho HD no CSS
+            scale: 1, 
             useCORS: true,
             allowTaint: true,
             backgroundColor: "#0f0f0f",
@@ -484,9 +443,7 @@ async function generateFinalImage() {
 
 function applyDynamicColors(card, color, format) {
     if (format === "story") {
-        // Elementos Story
         card.querySelectorAll(".story-rank, .stat-label").forEach(el => el.style.color = color);
-        // CORREÇÃO 4: Removido .story-brand da lista acima para não pintar o brand
         
         card.querySelectorAll(".story-column h3").forEach(el => el.style.borderLeftColor = color);
         card.querySelectorAll(".story-item.top-1, .story-stat").forEach(el => {
@@ -494,10 +451,7 @@ function applyDynamicColors(card, color, format) {
             el.style.backgroundColor = color + "22"; 
         });
 
-        // CORREÇÃO 3: Background do Story
         const headerBg = card.querySelector(".story-header");
-        // Ajustamos o gradiente para ser Radial no topo direito (igual o square)
-        // E garantimos que a imagem fique 'atrás' usando a ordem correta no CSS ou aqui
         if (globalTopCommonImage) {
             headerBg.style.background = `
                 linear-gradient(to bottom, rgba(15,15,15,0.3) 0%, #0f0f0f 100%),
@@ -509,8 +463,6 @@ function applyDynamicColors(card, color, format) {
         }
 
     } else {
-        // Elementos Square
-        // CORREÇÃO 4: Removido .sq-v2-brand
         card.querySelectorAll(".sq-v2-rank, .sq-v2-stat-label").forEach(el => el.style.color = color);
         
         card.querySelectorAll(".sq-v2-column h3").forEach(el => el.style.borderLeftColor = color);
@@ -522,5 +474,5 @@ function applyDynamicColors(card, color, format) {
         card.style.background = `radial-gradient(circle at top right, ${color}44, #0f0f0f 60%)`;
     }
 }
-// Start
+
 document.addEventListener("DOMContentLoaded", init);

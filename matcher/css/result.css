@@ -92,11 +92,37 @@
     box-shadow: 0 4px 15px rgb(0 0 0 / 0.2);
 }
 .divisor-vs {
-    font-weight: 900;
-    font-size: 2rem;
-    color: #fff;
-    opacity: 0.3;
-    margin-top: -50px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    gap: 5px; 
+}
+#vsScoreTag {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #bb86fc;
+    letter-spacing: 2px;
+    animation: purplePulse 3s infinite ease-in-out;
+}
+@keyframes purplePulse {
+    0% {
+        text-shadow: 0 0 10px rgba(187, 134, 252, 0.3);
+        transform: scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        text-shadow: 0 0 25px rgba(187, 134, 252, 0.8), 0 0 50px rgba(187, 134, 252, 0.4);
+        transform: scale(1.1); 
+        opacity: 1;
+    }
+    100% {
+        text-shadow: 0 0 10px rgba(187, 134, 252, 0.3);
+        transform: scale(1);
+        opacity: 0.9;
+    }
 }
 @media (max-width: 768px) {
     .duo-header-container {
