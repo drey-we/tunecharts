@@ -6,6 +6,7 @@ const iconLoading = `<svg class="spinner" width="20" height="20" viewBox="0 0 24
 
 if (!username) window.location.href = "index.html";
 
+// Globais
 let currentPeriod = "1month";
 let selectedAccentColor = "#bb86fc";
 let selectedFormat = "story";
@@ -14,6 +15,7 @@ let elements = {};
 let globalTopArtistImage = "";
 let cachedData = { artists: [], tracks: [], albums: [] };
 let spotifyTokenCache = null;
+let studioScale = 1;
 
 async function carregarTudo() {
     elements = {
@@ -24,15 +26,16 @@ async function carregarTudo() {
         scrobblesPerDay: document.getElementById("scrobblesPerDay"),
         monthlyLabel: document.querySelector(".monthly-label"),
         glider: document.querySelector(".toggle-glider"),
-        formatModal: document.getElementById("formatPickerModal"),
-        colorModal: document.getElementById("colorPickerModal"),
-        columnModal: document.getElementById("columnPickerModal"),
-        closeBtns: document.querySelectorAll(".close-button"),
-        genReportBtn: document.getElementById("btnGerarRelatorio"),
-        formatOptions: document.querySelectorAll(".format-option"),
-        colorOptions: document.querySelectorAll(".color-option"),
-        chartColOptions: document.querySelectorAll(".chart-col-option"),
-        confirmColumnsBtn: document.getElementById("confirmColumnsBtn"),
+        
+        // Studio
+        studioModal: document.getElementById("studioModal"),
+        studioPreviewContainer: document.getElementById("studioPreviewContainer"),
+        btnGerarRelatorio: document.getElementById("btnGerarRelatorio"),
+        btnCloseStudio: document.getElementById("btnCloseStudio"),
+        btnDownloadStudio: document.getElementById("btnDownloadStudio"),
+        
+        // Cards
+        storyCardContainer: document.getElementById("storyCardContainer"),
         storyCard: document.getElementById("storyCard"),
         storyUserImg: document.getElementById("storyUserImg"),
         storyTitle: document.getElementById("storyTitle"),
@@ -44,6 +47,8 @@ async function carregarTudo() {
         storyCol1List: document.getElementById("storyCol1List"),
         storyCol2Title: document.getElementById("storyCol2Title"),
         storyCol2List: document.getElementById("storyCol2List"),
+        
+        squareCardContainer: document.getElementById("squareCardV2Container"),
         squareCard: document.getElementById("squareCardV2"),
         sqUserImg: document.getElementById("sqUserImg"),
         sqUsername: document.getElementById("sqUsername"),
@@ -55,21 +60,293 @@ async function carregarTudo() {
         sqScrobblesLabel: document.getElementById("sqScrobblesLabel"),
         sqScrobblesValue: document.getElementById("sqScrobblesValue"),
     };
+
     configurarEventosHub();
     configurarTogglePeriodo();
     await buscarPerfil();
     atualizarDadosDoPeriodo(true);
 }
 
+// Adicione esta nova função global no result.js para controlar o fluxo
+function goToStep(stepName) {
+    // 1. Atualiza visual dos indicadores (bolinhas/texto no topo)
+    document.querySelectorAll(".progress-step").forEach(el => {
+        el.classList.remove("active");
+        if(el.getAttribute("data-step") === stepName) el.classList.add("active");
+    });
+
+    // 2. Troca a tela ativa
+    document.querySelectorAll(".studio-step").forEach(step => {
+        step.classList.remove("active");
+        if(step.id === `step-${stepName}`) step.classList.add("active");
+    });
+}
+
+// Atualize a função configurarEventosHub
+function configurarEventosHub() {
+    // ... (Listeners de abrir/fechar continuam iguais)
+    if (elements.btnGerarRelatorio) elements.btnGerarRelatorio.addEventListener("click", () => {
+        openStudio();
+        goToStep('format'); // Sempre reseta para o passo 1 ao abrir
+    });
+
+    if (elements.btnCloseStudio) elements.btnCloseStudio.addEventListener("click", closeStudio);
+
+    // --- LÓGICA DO FORMATO (Auto-Advance) ---
+    document.querySelectorAll(".studio-format-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            // Visual do botão
+            document.querySelectorAll(".studio-format-btn").forEach((b) => b.classList.remove("active"));
+            e.currentTarget.classList.add("active");
+            
+            // Lógica
+            selectedFormat = e.currentTarget.getAttribute("data-format");
+            updateStudioVisuals();
+
+            // AUTO-ADVANCE: Se estiver no mobile, vai pro próximo passo
+            if (window.innerWidth <= 768) {
+                setTimeout(() => goToStep('data'), 200); // Pequeno delay pra sentir o clique
+            }
+        });
+    });
+
+    // --- LÓGICA DA COR (Só atualiza) ---
+    document.querySelectorAll(".color-option").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            document.querySelectorAll(".color-option").forEach(b => b.style.transform = "scale(1)");
+            e.currentTarget.style.transform = "scale(1.15)";
+            selectedAccentColor = e.currentTarget.getAttribute("data-color");
+            updateStudioVisuals();
+        });
+    });
+
+    // --- LÓGICA DAS COLUNAS (Mantém igual, sem auto-advance) ---
+    document.querySelectorAll(".studio-col-option").forEach((checkbox) => {
+        checkbox.addEventListener("change", (e) => {
+            // ... (Sua lógica de limitar a 2 colunas continua aqui igualzinha)
+            const currentList = [];
+            document.querySelectorAll(".studio-col-option").forEach((chk) => {
+                if (chk.checked) currentList.push(chk.getAttribute("data-list"));
+            });
+            if (currentList.length > 2) {
+                const toRemove = chartsToInclude.find(item => item !== e.target.getAttribute("data-list"));
+                const chkToRemove = document.querySelector(`.studio-col-option[data-list="${toRemove}"]`);
+                if(chkToRemove) chkToRemove.checked = false;
+            }
+            if (currentList.length === 0 && !e.target.checked) {
+                e.target.checked = true;
+            }
+            chartsToInclude = [];
+            document.querySelectorAll(".studio-col-option").forEach((chk) => {
+                if (chk.checked) chartsToInclude.push(chk.getAttribute("data-list"));
+            });
+            updateStudioVisuals();
+        });
+    });
+
+    // Download
+    if (elements.btnDownloadStudio) {
+        elements.btnDownloadStudio.addEventListener("click", () => {
+            gerarImagemFinal(selectedFormat, selectedAccentColor, chartsToInclude);
+        });
+    }
+}
+
+function openStudio() {
+    if (!elements.studioModal) return;
+    elements.studioModal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+
+    // Garante display flex para cálculos
+    elements.storyCard.style.display = "flex";
+    elements.squareCard.style.display = "flex";
+
+    elements.studioPreviewContainer.innerHTML = "";
+    updateStudioVisuals();
+    
+    setTimeout(fitCardToScreen, 50);
+    window.addEventListener("resize", fitCardToScreen);
+}
+
+function closeStudio() {
+    if (!elements.studioModal) return;
+    elements.studioModal.style.display = "none";
+    document.body.style.overflow = "";
+    window.removeEventListener("resize", fitCardToScreen);
+    
+    // Devolve cards ao limbo (opcional, mas bom pra limpeza)
+    if (elements.storyCardContainer) elements.storyCardContainer.appendChild(elements.storyCard);
+    if (elements.squareCardContainer) elements.squareCardContainer.appendChild(elements.squareCard);
+}
+
+function updateStudioVisuals() {
+    const container = elements.studioPreviewContainer;
+    
+    if (selectedFormat === "story") {
+        elements.squareCard.style.display = "none";
+        elements.storyCard.style.display = "flex"; // Força flex
+        if (elements.storyCard.parentElement !== container) {
+            container.appendChild(elements.storyCard);
+        }
+    } else {
+        elements.storyCard.style.display = "none";
+        elements.squareCard.style.display = "flex"; // Força flex
+        if (elements.squareCard.parentElement !== container) {
+            container.appendChild(elements.squareCard);
+        }
+    }
+
+    preencherDadosNoCard(selectedFormat, chartsToInclude, selectedAccentColor);
+    requestAnimationFrame(fitCardToScreen);
+}
+
+function fitCardToScreen() {
+    const container = elements.studioPreviewContainer;
+    const previewArea = document.querySelector(".studio-preview-area");
+    const cardWidth = 1080;
+    const cardHeight = selectedFormat === "story" ? 1920 : 1080;
+    
+    if (!container || !previewArea) return;
+
+    const availableWidth = previewArea.clientWidth - 40;
+    const availableHeight = previewArea.clientHeight - 40;
+
+    const scaleX = availableWidth / cardWidth;
+    const scaleY = availableHeight / cardHeight;
+    studioScale = Math.min(scaleX, scaleY);
+
+    container.style.width = `${cardWidth}px`;
+    container.style.height = `${cardHeight}px`;
+    container.style.transform = `scale(${studioScale})`;
+}
+
+function preencherDadosNoCard(format, selectedCharts, accentColor) {
+    let col1, col1Title, col1List, col2, col2Title, col2List;
+    let cardElement = format === "story" ? elements.storyCard : elements.squareCard;
+
+    if (format === "story") {
+        col1 = cardElement.querySelector(".story-column:nth-child(1)");
+        col1Title = elements.storyCol1Title;
+        col1List = elements.storyCol1List;
+        col2 = cardElement.querySelector(".story-column:nth-child(2)");
+        col2Title = elements.storyCol2Title;
+        col2List = elements.storyCol2List;
+    } else {
+        col1 = cardElement.querySelector(".sq-v2-column:nth-child(1)");
+        col1Title = elements.sqCol1Title;
+        col1List = elements.sqCol1List;
+        col2 = cardElement.querySelector(".sq-v2-column:nth-child(2)");
+        col2Title = elements.sqCol2Title;
+        col2List = elements.sqCol2List;
+    }
+
+    // Helper para pegar título bonito
+    const getTitle = (type) => {
+        const checkbox = document.querySelector(`.studio-col-option[data-list="${type}"]`);
+        return checkbox ? checkbox.parentElement.parentElement.querySelector('.toggle-label').textContent : "Top Chart";
+    };
+
+    if (selectedCharts.length === 1) {
+        const type = selectedCharts[0];
+        const data = cachedData[type] || [];
+        
+        col1.style.display = "flex";
+        col2.style.display = "none";
+        if (format === "square") col1.style.width = "100%";
+        
+        // No Story, com 1 coluna, podemos mostrar 10 itens.
+        // Se ficar muito grande, o CSS overflow:hidden vai cortar, mas geralmente cabe.
+        const limit = format === "story" ? 10 : 5;
+        
+        col1Title.textContent = getTitle(type);
+        col1List.innerHTML = formatarListaHTML(data, limit, type, format);
+    } else {
+        // Garante 2 itens
+        const types = selectedCharts.length >= 2 ? selectedCharts : ["artists", "tracks"];
+        const [type1, type2] = types;
+        
+        const data1 = cachedData[type1] || [];
+        const data2 = cachedData[type2] || [];
+
+        col1.style.display = "flex";
+        col2.style.display = "flex";
+        if (format === "square") col1.style.width = "50%";
+
+        // Com 2 colunas, limitamos a 5 itens cada para caber
+        const limit = 5; 
+        col1Title.textContent = getTitle(type1);
+        col1List.innerHTML = formatarListaHTML(data1, limit, type1, format);
+        col2Title.textContent = getTitle(type2);
+        col2List.innerHTML = formatarListaHTML(data2, limit, type2, format);
+    }
+
+    aplicarCoresDinamicas(cardElement, accentColor, format);
+}
+
+// Download com Ghost Container
+async function gerarImagemFinal(format, accentColor, selectedCharts) {
+    const btn = elements.btnDownloadStudio;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `${iconLoading} Generating...`;
+    btn.disabled = true;
+
+    const cardElement = format === "story" ? elements.storyCard : elements.squareCard;
+    const container = elements.studioPreviewContainer;
+
+    const ghostContainer = document.createElement("div");
+    ghostContainer.style.position = "fixed";
+    ghostContainer.style.top = "-9999px";
+    ghostContainer.style.left = "0";
+    ghostContainer.style.zIndex = "99999";
+    ghostContainer.style.width = format === "story" ? "1080px" : "1080px";
+    ghostContainer.style.height = format === "story" ? "1920px" : "1080px";
+    
+    document.body.appendChild(ghostContainer);
+    ghostContainer.appendChild(cardElement);
+
+    try {
+        await new Promise((r) => setTimeout(r, 100));
+        const canvas = await html2canvas(cardElement, {
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#0f0f0f",
+            width: format === "story" ? 1080 : 1080,
+            height: format === "story" ? 1920 : 1080,
+            logging: false,
+        });
+
+        const link = document.createElement("a");
+        link.download = `TuneCharts-${username}-${currentPeriod}-${format}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        btn.innerHTML = `${iconCheck} Done!`;
+        btn.style.backgroundColor = "#28a745";
+    } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+    } finally {
+        container.appendChild(cardElement);
+        document.body.removeChild(ghostContainer);
+        fitCardToScreen();
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            btn.style.backgroundColor = "";
+        }, 3000);
+    }
+}
+
+// --- Funções de Apoio (API / HTML) ---
+
 function configurarTogglePeriodo() {
     const buttons = document.querySelectorAll(".toggle-option");
     buttons.forEach((btn) => {
         btn.addEventListener("click", (e) => {
-            const clickedButton = e.currentTarget;
-            buttons.forEach((b) => b.classList.remove("active"));
-            clickedButton.classList.add("active");
-            currentPeriod = clickedButton.getAttribute("data-period");
-            moveGlider(clickedButton);
+            document.querySelectorAll(".toggle-option").forEach((b) => b.classList.remove("active"));
+            e.currentTarget.classList.add("active");
+            currentPeriod = e.currentTarget.getAttribute("data-period");
+            moveGlider(e.currentTarget);
             atualizarDadosDoPeriodo(false);
         });
     });
@@ -77,29 +354,15 @@ function configurarTogglePeriodo() {
 
 function moveGlider(targetButton) {
     if (!elements.glider || !targetButton) return;
-    const offsetLeft = targetButton.offsetLeft;
-    const width = targetButton.offsetWidth;
-    elements.glider.style.width = `${width}px`;
-    elements.glider.style.transform = `translateX(${offsetLeft}px)`;
+    elements.glider.style.width = `${targetButton.offsetWidth}px`;
+    elements.glider.style.transform = `translateX(${targetButton.offsetLeft}px)`;
 }
 
 async function atualizarDadosDoPeriodo(isInitialLoad = false) {
-    let reportSubtitle = "";
-    let labelText = "";
-    let scrobblesLabel = "";
-    if (currentPeriod === "7day") {
-        reportSubtitle = "Last 7 Days";
-        labelText = "In the last 7 days";
-        scrobblesLabel = "Weekly Scrobbles";
-    } else if (currentPeriod === "1month") {
-        reportSubtitle = `Last 30 Days`;
-        labelText = "In the last 30 days";
-        scrobblesLabel = "Monthly Scrobbles";
-    } else if (currentPeriod === "12month") {
-        reportSubtitle = `Last 12 Months`;
-        labelText = "In the last 12 months";
-        scrobblesLabel = "Annual Scrobbles";
-    }
+    let reportSubtitle = currentPeriod === "7day" ? "Last 7 Days" : (currentPeriod === "1month" ? "Last 30 Days" : "Last 12 Months");
+    let labelText = currentPeriod === "7day" ? "In the last 7 days" : (currentPeriod === "1month" ? "In the last 30 days" : "In the last 12 months");
+    let scrobblesLabel = currentPeriod === "7day" ? "Weekly Scrobbles" : (currentPeriod === "1month" ? "Monthly Scrobbles" : "Annual Scrobbles");
+
     elements.storySubtitle.textContent = reportSubtitle;
     elements.sqReportTitle.textContent = reportSubtitle;
     elements.storyScrobblesLabel.textContent = scrobblesLabel;
@@ -110,47 +373,45 @@ async function atualizarDadosDoPeriodo(isInitialLoad = false) {
     resetarChartsParaSkeleton();
     globalTopArtistImage = "";
     atualizarBanner("");
+    
     await Promise.all([
         buscarScrobblesDoPeriodo(),
         buscarCharts("user.gettopartists", "artist", "cardArtists"),
         buscarCharts("user.gettoptracks", "track", "cardTracks"),
         buscarCharts("user.gettopalbums", "album", "cardAlbums"),
     ]);
+    
     if (isInitialLoad) {
-        const activeButton = document.querySelector(".toggle-option.active");
-        if (activeButton) setTimeout(() => moveGlider(activeButton), 100);
+        const activeBtn = document.querySelector(".toggle-option.active");
+        if (activeBtn) setTimeout(() => moveGlider(activeBtn), 100);
     }
 }
 
 function resetarChartsParaSkeleton() {
-    const skeletonTop1 = `<div class="chart-item skeleton top-1"><div class="cover-placeholder" style="background: #333;"></div><span class="skeleton-text" style="width: 60%;"></span></div>`;
-    const skeletonItem = `<div class="chart-item skeleton"></div>`;
-    document.querySelectorAll(".lista-top").forEach((el) => {
-        el.innerHTML = skeletonTop1 + skeletonItem.repeat(9);
-    });
+    const skeletonHTML = `<div class="chart-item skeleton top-1"><div class="cover-placeholder" style="background: #333;"></div><span class="skeleton-text" style="width: 60%;"></span></div>` + `<div class="chart-item skeleton"></div>`.repeat(9);
+    document.querySelectorAll(".lista-top").forEach(el => el.innerHTML = skeletonHTML);
 }
 
 async function buscarPerfil() {
     try {
-        const url = `/api/?method=user.getinfo&user=${username}`;
-        const res = await fetch(url);
+        const res = await fetch(`/api/?method=user.getinfo&user=${username}`);
         const data = await res.json();
         const user = data.user;
         const displayName = user.realname || user.name;
+        
         elements.userName.textContent = displayName;
         elements.storyTitle.textContent = displayName;
         elements.sqUsername.textContent = displayName;
         elements.userName.classList.remove("skeleton");
-        const img = user.image.find((i) => i.size === "extralarge") || user.image.pop();
+        
+        const img = user.image.find(i => i.size === "extralarge") || user.image.pop();
         if (img && img["#text"]) {
-            elements.userFoto.src = img["#text"];
-            elements.storyUserImg.crossOrigin = "anonymous";
-            elements.storyUserImg.src = img["#text"];
-            elements.sqUserImg.crossOrigin = "anonymous";
-            elements.sqUserImg.src = img["#text"];
+            [elements.userFoto, elements.storyUserImg, elements.sqUserImg].forEach(el => {
+                if(el) { el.src = img["#text"]; el.crossOrigin = "anonymous"; }
+            });
         }
         elements.userFoto.classList.remove("skeleton");
-    } catch (error) {
+    } catch (e) {
         elements.userName.textContent = username;
         elements.userName.classList.remove("skeleton");
     }
@@ -159,29 +420,22 @@ async function buscarPerfil() {
 async function buscarScrobblesDoPeriodo() {
     try {
         let fromDate = 0;
-        let daysDivisor = 1;
-        if (currentPeriod === "7day") {
-            fromDate = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
-            daysDivisor = 7;
-        } else if (currentPeriod === "1month") {
-            fromDate = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000);
-            daysDivisor = 30;
-        } else if (currentPeriod === "12month") {
-            fromDate = Math.floor((Date.now() - 365 * 24 * 60 * 60 * 1000) / 1000);
-            daysDivisor = 365;
-        }
-        const url = `/api/?method=user.getrecenttracks&user=${username}&limit=1&from=${fromDate}`;
-        const res = await fetch(url);
+        if (currentPeriod === "7day") fromDate = Math.floor((Date.now() - 7 * 86400000) / 1000);
+        else if (currentPeriod === "1month") fromDate = Math.floor((Date.now() - 30 * 86400000) / 1000);
+        else if (currentPeriod === "12month") fromDate = Math.floor((Date.now() - 365 * 86400000) / 1000);
+
+        const res = await fetch(`/api/?method=user.getrecenttracks&user=${username}&limit=1&from=${fromDate}`);
         const data = await res.json();
-        let total = "0";
-        if (data.recenttracks && data.recenttracks["@attr"]) total = data.recenttracks["@attr"].total;
+        let total = data.recenttracks?.["@attr"]?.total || "0";
         const totalInt = parseInt(total);
+        
         elements.userScrobbles.textContent = totalInt.toLocaleString("pt-BR");
         if (elements.storyScrobblesValue) elements.storyScrobblesValue.textContent = totalInt.toLocaleString("en-US");
         if (elements.sqScrobblesValue) elements.sqScrobblesValue.textContent = totalInt.toLocaleString("en-US");
-        const dailyAvg = daysDivisor > 0 ? Math.round(totalInt / daysDivisor) : 0;
-        if (elements.scrobblesPerDay) elements.scrobblesPerDay.textContent = dailyAvg.toLocaleString("pt-BR");
-    } catch (error) {
+        
+        let daysDivisor = currentPeriod === "7day" ? 7 : (currentPeriod === "1month" ? 30 : 365);
+        if (elements.scrobblesPerDay) elements.scrobblesPerDay.textContent = Math.round(totalInt / daysDivisor).toLocaleString("pt-BR");
+    } catch (e) {
         elements.userScrobbles.textContent = "-";
     } finally {
         elements.userScrobbles.classList.remove("skeleton");
@@ -191,16 +445,19 @@ async function buscarScrobblesDoPeriodo() {
 
 async function buscarCharts(method, type, mainId) {
     try {
-        const url = `/api/?method=${method}&user=${username}&limit=10&period=${currentPeriod}`;
-        const res = await fetch(url);
+        const res = await fetch(`/api/?method=${method}&user=${username}&limit=10&period=${currentPeriod}`);
         const data = await res.json();
         const rootKey = "top" + type + "s";
-        const items = data[rootKey] ? (Array.isArray(data[rootKey][type]) ? data[rootKey][type] : [data[rootKey][type]]) : [];
+        const items = data[rootKey]?.[type] ? (Array.isArray(data[rootKey][type]) ? data[rootKey][type] : [data[rootKey][type]]) : [];
         
-        cachedData[type + "s"] = items; 
-        
+        cachedData[type + "s"] = items;
+        if(type === 'artist') cachedData.artists = items;
+        if(type === 'track') cachedData.tracks = items;
+        if(type === 'album') cachedData.albums = items;
+
         const container = document.querySelector(`#${mainId} .lista-top`);
         if (!container) return;
+        
         let htmlMain = "";
         for (let i = 0; i < Math.min(items.length, 10); i++) {
             const item = items[i];
@@ -208,39 +465,31 @@ async function buscarCharts(method, type, mainId) {
             let text = item.name;
             let artistName = item.artist ? item.artist.name : "";
             const imgId = `img-${type}-${i}`;
+            
             if (isTop1) {
                 let subtitle = type !== "artist" ? `<span style="display:block; font-size: 0.85em; opacity: 0.7; font-weight: normal;">${artistName}</span>` : "";
                 htmlMain += `<div class="chart-item top-1"><div id="${imgId}" class="cover-placeholder"></div><div class="text-content"><span class="rank-number">#1</span><div><span>${text}</span>${subtitle}</div></div></div>`;
                 
-                buscarImagemSpotify(type === "artist" ? text : artistName, type === "artist" ? "" : text, type).then(
-                    (spotifyUrl) => {
-                        if (spotifyUrl) {
-                            const el = document.getElementById(imgId);
-                            if (el) {
-                                const img = new Image();
-                                img.src = spotifyUrl;
-                                img.onload = () => {
-                                    el.innerHTML = "";
-                                    el.appendChild(img);
-                                    void el.offsetWidth; 
-                                    img.classList.add('loaded');
-                                };
-                            }
-                            if (type === "artist") {
-                                atualizarBanner(spotifyUrl);
-                                globalTopArtistImage = spotifyUrl;
-                            }
+                buscarImagemSpotify(type === "artist" ? text : artistName, type === "artist" ? "" : text, type).then(url => {
+                    if (url) {
+                        const el = document.getElementById(imgId);
+                        if (el) {
+                            const img = new Image();
+                            img.src = url;
+                            img.onload = () => { el.innerHTML = ""; el.appendChild(img); img.classList.add('loaded'); };
                         }
+                        if (type === "artist") { atualizarBanner(url); globalTopArtistImage = url; }
                     }
-                );
+                });
             } else {
                 if (type !== "artist") text += ` <span style="opacity:0.6"> - ${artistName}</span>`;
                 htmlMain += `<div class="chart-item">#${i + 1} - ${text}</div>`;
             }
         }
         container.innerHTML = htmlMain || "No data.";
-    } catch (error) {
-        document.querySelector(`#${mainId} .lista-top`).innerHTML = "Error loading.";
+    } catch (e) {
+        const container = document.querySelector(`#${mainId} .lista-top`);
+        if(container) container.innerHTML = "Error loading.";
     }
 }
 
@@ -253,195 +502,47 @@ async function obterTokenSpotify() {
             spotifyTokenCache = data.access_token;
             return data.access_token;
         }
-    } catch (e) {
-        console.warn("Falha token Spotify:", e);
-    }
+    } catch (e) { console.warn("Spotify Token Error", e); }
     return null;
 }
 
-async function buscarImagemSpotify(artist, albumOrTrackName, type) {
+async function buscarImagemSpotify(artist, trackName, type) {
     const token = await obterTokenSpotify();
     if (!token) return null;
     const cleanArtist = encodeURIComponent(artist);
-    const cleanTrack = encodeURIComponent(albumOrTrackName.split(" - ")[0].split("(")[0]);
-    let query = "";
-    let searchType = "";
-    if (type === "artist") {
-        query = `q=artist:"${cleanArtist}"`;
-        searchType = "artist";
-    } else if (type === "album") {
-        query = `q=album:"${cleanTrack}" artist:"${cleanArtist}"`;
-        searchType = "album";
-    } else {
-        query = `q=track:"${cleanTrack}" artist:"${cleanArtist}"`;
-        searchType = "track";
-    }
+    const cleanTrack = encodeURIComponent(trackName.split(" - ")[0].split("(")[0]);
+    let query = type === "artist" ? `q=artist:"${cleanArtist}"` : (type === "album" ? `q=album:"${cleanTrack}" artist:"${cleanArtist}"` : `q=track:"${cleanTrack}" artist:"${cleanArtist}"`);
+    let searchType = type === "artist" ? "artist" : (type === "album" ? "album" : "track");
+    
     try {
-        const url = `https://api.spotify.com/v1/search?${query}&type=${searchType}&limit=1`;
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`https://api.spotify.com/v1/search?${query}&type=${searchType}&limit=1`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
-        if (type === "artist" && data.artists?.items?.length > 0) {
-            return data.artists.items[0].images[0]?.url;
-        } else if (type === "album" && data.albums?.items?.length > 0) {
-            return data.albums.items[0].images[0]?.url;
-        } else if (type === "track" && data.tracks?.items?.length > 0) {
-            return data.tracks.items[0].album.images[0]?.url;
-        }
-    } catch (e) {
-        return null;
-    }
+        if (type === "artist") return data.artists?.items[0]?.images[0]?.url;
+        if (type === "album") return data.albums?.items[0]?.images[0]?.url;
+        if (type === "track") return data.tracks?.items[0]?.album?.images[0]?.url;
+    } catch (e) { return null; }
     return null;
 }
 
 function atualizarBanner(imgUrl) {
     if (!elements.bannerBackground) return;
-    if (imgUrl && imgUrl.length > 0) {
+    if (imgUrl) {
         const img = new Image();
         img.src = imgUrl;
-        img.onload = () => {
-             elements.bannerBackground.style.backgroundImage = `url('${imgUrl}')`;
-             elements.bannerBackground.style.opacity = 1;
-        };
+        img.onload = () => { elements.bannerBackground.style.backgroundImage = `url('${imgUrl}')`; elements.bannerBackground.style.opacity = 1; };
     } else {
         elements.bannerBackground.style.opacity = 0;
-        setTimeout(() => {
-            if (elements.bannerBackground.style.opacity == "0") {
-                elements.bannerBackground.style.backgroundImage = "none";
-            }
-        }, 500);
-    }
-}
-
-function configurarEventosHub() {
-    if (!elements.genReportBtn) return;
-    elements.genReportBtn.addEventListener("click", () => elements.formatModal.style.display = "flex");
-    elements.closeBtns.forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-            const modalId = e.currentTarget.getAttribute("data-modal");
-            document.getElementById(modalId).style.display = "none";
-        });
-    });
-    window.addEventListener("click", (e) => {
-        if (e.target === elements.colorModal) elements.colorModal.style.display = "none";
-        if (e.target === elements.formatModal) elements.formatModal.style.display = "none";
-        if (e.target === elements.columnModal) elements.columnModal.style.display = "none";
-    });
-    elements.formatOptions.forEach((btn) => {
-        btn.onclick = (e) => {
-            selectedFormat = e.currentTarget.getAttribute("data-format");
-            elements.formatModal.style.display = "none";
-            elements.columnModal.style.display = "flex";
-            setupColumnPicker();
-        };
-    });
-
-    function setupColumnPicker() {
-        const updateSelection = () => {
-            chartsToInclude = [];
-            elements.chartColOptions.forEach((checkbox) => {
-                if (checkbox.checked) chartsToInclude.push(checkbox.getAttribute("data-list"));
-            });
-            elements.confirmColumnsBtn.disabled = chartsToInclude.length === 0 || chartsToInclude.length > 2;
-        };
-        elements.chartColOptions.forEach((checkbox) => {
-            checkbox.onchange = () => {
-                updateSelection();
-                if (chartsToInclude.length > 2) { checkbox.checked = false; updateSelection(); }
-            };
-        });
-        updateSelection();
-    }
-    elements.confirmColumnsBtn.onclick = () => {
-        if (chartsToInclude.length >= 1 && chartsToInclude.length <= 2) {
-            elements.columnModal.style.display = "none";
-            elements.colorModal.style.display = "flex";
-        }
-    };
-    elements.colorOptions.forEach((btn) => {
-        btn.onclick = (e) => {
-            selectedAccentColor = e.currentTarget.getAttribute("data-color");
-            elements.colorModal.style.display = "none";
-            setTimeout(() => gerarImagemFinal(selectedFormat, selectedAccentColor, chartsToInclude), 50);
-        };
-    });
-}
-
-async function gerarImagemFinal(format, accentColor, selectedCharts) {
-    const btn = elements.genReportBtn;
-    btn.innerHTML = `${iconLoading} Generating...`;
-    btn.disabled = true;
-
-    let cardElement, cardWidth, cardHeight, col1, col1Title, col1List, col2, col2Title, col2List;
-    if (format === "story") {
-        cardElement = elements.storyCard; cardWidth = 1080; cardHeight = 1920;
-        col1 = cardElement.querySelector(".story-column:nth-child(1)"); col1Title = elements.storyCol1Title; col1List = elements.storyCol1List;
-        col2 = cardElement.querySelector(".story-column:nth-child(2)"); col2Title = elements.storyCol2Title; col2List = elements.storyCol2List;
-    } else {
-        cardElement = elements.squareCard; cardWidth = 1080; cardHeight = 1080;
-        col1 = cardElement.querySelector(".sq-v2-column:nth-child(1)"); col1Title = elements.sqCol1Title; col1List = elements.sqCol1List;
-        col2 = cardElement.querySelector(".sq-v2-column:nth-child(2)"); col2Title = elements.sqCol2Title; col2List = elements.sqCol2List;
-    }
-
-    if (selectedCharts.length === 1) {
-        const type = selectedCharts[0];
-        const data = cachedData[type] || [];
-        const title = document.querySelector(`.chart-col-option[data-list="${type}"]`).getAttribute("data-title");
-        col1.style.display = "flex"; col2.style.display = "none";
-        if (format === "square") col1.style.width = "100%";
-        const limit = format === "story" ? 10 : 5;
-        col1Title.textContent = title;
-        col1List.innerHTML = formatarListaHTML(data, limit, type, format);
-    } else {
-        const [type1, type2] = selectedCharts;
-        const data1 = cachedData[type1] || [];
-        const data2 = cachedData[type2] || [];
-        const title1 = document.querySelector(`.chart-col-option[data-list="${type1}"]`).getAttribute("data-title");
-        const title2 = document.querySelector(`.chart-col-option[data-list="${type2}"]`).getAttribute("data-title");
-        col1.style.display = "flex"; col2.style.display = "flex";
-        if (format === "square") col1.style.width = "50%";
-        const limit = format === "story" ? 5 : 5; 
-        col1Title.textContent = title1; col1List.innerHTML = formatarListaHTML(data1, limit, type1, format);
-        col2Title.textContent = title2; col2List.innerHTML = formatarListaHTML(data2, limit, type2, format);
-    }
-
-    try {
-        aplicarCoresDinamicas(cardElement, accentColor, format);
-        await new Promise((r) => setTimeout(r, 600));
-        const canvas = await html2canvas(cardElement, {
-            scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#0f0f0f",
-            width: cardWidth, height: cardHeight, logging: false,
-        });
-        const link = document.createElement("a");
-        link.download = `TuneCharts-${username}-${currentPeriod}-${format}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        btn.innerHTML = `${iconCheck} Done!`;
-        btn.style.backgroundColor = "#28a745";
-    } catch (err) {
-        alert("Error generating image: " + err.message);
-    } finally {
-        setTimeout(() => {
-            btn.innerHTML = `${iconDownload} Generate Report`;
-            btn.disabled = false;
-            btn.style.backgroundColor = "";
-        }, 3000);
+        setTimeout(() => { if (elements.bannerBackground.style.opacity == "0") elements.bannerBackground.style.backgroundImage = "none"; }, 500);
     }
 }
 
 function formatarListaHTML(items, limit, type, format) {
     let html = "";
-    const itemsToShow = (items || []).slice(0, limit);
-    itemsToShow.forEach((item, i) => {
+    (items || []).slice(0, limit).forEach((item, i) => {
         let text = item.name;
-        
         if (format === "story") {
             const scrobbles = item.playcount ? parseInt(item.playcount).toLocaleString("en-US") : "";
-            
-            html += `<div class="story-item ${i === 0 ? "top-1" : ""}">
-                        <span class="story-rank">#${i + 1}</span>
-                        <span class="story-text" style="flex:1;">${text}</span>
-                        <span style="font-size:0.9em; opacity:0.9; margin-left:8px; white-space:nowrap;">${scrobbles} scrobbles</span>
-                     </div>`;
+            html += `<div class="story-item ${i === 0 ? "top-1" : ""}"><span class="story-rank">#${i + 1}</span><span class="story-text" style="flex:1;">${text}</span><span style="font-size:0.9em; opacity:0.9; margin-left:8px; white-space:nowrap;">${scrobbles} scrobbles</span></div>`;
         } else {
             html += `<li class="${i === 0 ? "top-1" : ""}"><span class="sq-v2-rank">#${i + 1}</span><span class="sq-v2-text">${text}</span></li>`;
         }
@@ -451,31 +552,41 @@ function formatarListaHTML(items, limit, type, format) {
 
 function aplicarCoresDinamicas(card, accentColor, format) {
     if (format === "story") {
+        // Textos e Bordas
         card.querySelectorAll(".story-subtitle, .story-rank, .stat-label, .stat-disclaimer").forEach(el => el.style.color = accentColor);
         card.querySelectorAll(".story-column h3").forEach(el => el.style.borderLeftColor = accentColor);
-        card.querySelectorAll(".story-stat, .story-item.top-1").forEach(el => { el.style.borderColor = accentColor; el.style.backgroundColor = accentColor + "33"; });
+        card.querySelectorAll(".story-stat, .story-item.top-1").forEach(el => { 
+            el.style.borderColor = accentColor; 
+            el.style.backgroundColor = accentColor + "33"; 
+        });
         
+        // Fundo do Header e do Card
         const headerElement = card.querySelector(".story-header");
         if (headerElement) {
-            if (globalTopArtistImage) {
-                 headerElement.style.background = `
-                    radial-gradient(circle 700px at top right, ${accentColor}66, transparent),
-                    linear-gradient(to bottom, transparent 0%, rgba(15,15,15,0.2) 30%, rgba(15,15,15,0.8) 80%, #0f0f0f 100%),
-                    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-                    url('${globalTopArtistImage}') no-repeat center center / cover
-                `;
-            } else {
-                 headerElement.style.background = `radial-gradient(circle 100px at top right, ${accentColor}66, transparent)`;
-            }
+            // Se tiver imagem, usa ela + gradiente grande. Se não, usa gradiente grande (700px)
+            headerElement.style.background = globalTopArtistImage ? 
+                `radial-gradient(circle 700px at top right, ${accentColor}66, transparent), 
+                 linear-gradient(to bottom, transparent 0%, rgba(15,15,15,0.2) 30%, rgba(15,15,15,0.8) 80%, #0f0f0f 100%), 
+                 linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                 url('${globalTopArtistImage}') no-repeat center center / cover` 
+                : 
+                `radial-gradient(circle 700px at top right, ${accentColor}66, transparent)`;
         }
         
-        card.style.background = `radial-gradient(circle 100px at top right, ${accentColor}66, transparent), #0f0f0f`;
+        // Fundo do Card Geral (Aumentado de 100px para 700px para dar o efeito de glow real)
+        card.style.background = `radial-gradient(circle 300px at top right, ${accentColor}66, transparent), #0f0f0f`;
 
     } else {
+        // Lógica do Square (mantida igual, mas ajustei o gradiente se quiser mais forte também)
         card.querySelectorAll(".sq-v2-report-title, .sq-v2-list li.top-1 span, .sq-v2-stat-label").forEach(el => el.style.color = accentColor);
         card.querySelectorAll(".sq-v2-column h3").forEach(el => el.style.borderLeftColor = accentColor);
-        card.querySelectorAll(".sq-v2-avatar, .sq-v2-stat, .sq-v2-list li.top-1").forEach(el => { el.style.borderColor = accentColor; if(!el.classList.contains('sq-v2-avatar')) el.style.backgroundColor = accentColor + "33"; });
-        card.style.background = `radial-gradient(circle at top right, ${accentColor}66, #0f0f0f 25%)`;
+        card.querySelectorAll(".sq-v2-avatar, .sq-v2-stat, .sq-v2-list li.top-1").forEach(el => { 
+            el.style.borderColor = accentColor; 
+            if(!el.classList.contains('sq-v2-avatar')) el.style.backgroundColor = accentColor + "33"; 
+        });
+        
+        // Square Background
+        card.style.background = `radial-gradient(circle at top right, ${accentColor}66, #0f0f0f 40%)`;
     }
 }
 
